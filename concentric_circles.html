@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>for recharger</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    function calculateDestinationPoint(latitude, longitude, distance, bearing) {
+      const earthRadius = 6371000; // 地球の半径（メートル単位）
+
+      const radianLatitude = (latitude * Math.PI) / 180;
+      const radianLongitude = (longitude * Math.PI) / 180;
+      const angularDistance = distance / earthRadius;
+      const radianBearing = (bearing * Math.PI) / 180;
+
+      const newLatitude = Math.asin(Math.sin(radianLatitude) * Math.cos(angularDistance) +
+        Math.cos(radianLatitude) * Math.sin(angularDistance) * Math.cos(radianBearing));
+
+      const newLongitude = radianLongitude + Math.atan2(Math.sin(radianBearing) * Math.sin(angularDistance) * Math.cos(radianLatitude),
+        Math.cos(angularDistance) - Math.sin(radianLatitude) * Math.sin(newLatitude));
+
+      const newLatitudeDegrees = (newLatitude * 180) / Math.PI;
+      const newLongitudeDegrees = (newLongitude * 180) / Math.PI;
+
+      return [newLatitudeDegrees, newLongitudeDegrees];
+    }
+
+    function init() {
+      var map = L.map('mapcontainer', { zoomControl: false });
+      let url = new URL(window.location.href);
+      let params = url.searchParams;
+
+      const ll = params.get("ll");
+      const lat = ll.split(',')[0]
+      const lng = ll.split(',')[1]
+
+      const R = params.get("r")
+      const Rs = R.split(',')
+
+      const z = params.get("z")
+
+      var center = [parseFloat(lat), parseFloat(lng)];
+      map.setView(center, z);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: "© <a href='https://www.openstreetmap.org/copyright/ja' target='_blank'>OpenStreetMap</a> contributors"
+      }).addTo(map);
+      L.control.scale({ maxWidth: 200, position: 'bottomright', imperial: false }).addTo(map);
+      L.control.zoom({ position: 'bottomleft' }).addTo(map);
+
+      var level = 1;
+      Rs.forEach(r => {
+        var circle = L.circle(center, {
+          color: 'red',
+          fillColor: '#f03',
+          fillOpacity: 0.01,
+          radius: r // メートル単位で指定
+        }).addTo(map);
+
+        var radius = r; // メートル単位で指定
+
+        // カスタムアイコンを作成
+        var customIcon = L.divIcon({
+          className: 'custom-div-icon',
+          html: `<div class="marker-text"><b>${level}</b></div>`,
+          iconSize: [120, 40],
+          iconAnchor: [0, 10]
+        });
+        level++;
+
+        // マーカーを作成して円の縁に追加
+        xy = calculateDestinationPoint(center[0], center[1], r, 180);
+        // var marker = L.marker([35.50, 139], { icon: customIcon }).addTo(map);
+        console.log(xy)
+        var marker = L.marker(xy, { icon: customIcon }).addTo(map);
+
+        xy = calculateDestinationPoint(center[0], center[1], r, 0);
+        var marker2 = L.marker(xy, { icon: customIcon }).addTo(map);
+      })
+    }
+  </script>
+</head>
+
+<body onload="init()">
+  <!-- style属性に次のように設定するとブラウザの画面全体に表示される -->
+  <div id="mapcontainer" style="position:absolute;top:0;left:0;right:0;bottom:0;"></div>
+</body>
+
+</html>
