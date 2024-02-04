@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>for recharger</title>
+  <title>Concentric circles</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
@@ -49,8 +49,7 @@
       L.control.scale({ maxWidth: 200, position: 'bottomright', imperial: false }).addTo(map);
       L.control.zoom({ position: 'bottomleft' }).addTo(map);
 
-      var level = 1;
-      Rs.forEach(r => {
+      Rs.forEach((r, level) => {
         var circle = L.circle(center, {
           color: 'red',
           fillColor: '#f03',
@@ -63,20 +62,17 @@
         // カスタムアイコンを作成
         var customIcon = L.divIcon({
           className: 'custom-div-icon',
-          html: `<div class="marker-text"><b>${level}</b></div>`,
+          html: `<div class="marker-text"><b>${level + 1}(${r}m)</b></div>`,
           iconSize: [120, 40],
           iconAnchor: [0, 10]
         });
-        level++;
 
         // マーカーを作成して円の縁に追加
         xy = calculateDestinationPoint(center[0], center[1], r, 180);
-        // var marker = L.marker([35.50, 139], { icon: customIcon }).addTo(map);
-        console.log(xy)
-        // var marker = L.marker(xy, { icon: customIcon }).addTo(map);
+        var marker = L.marker(xy, { icon: customIcon }).addTo(map);
 
         xy = calculateDestinationPoint(center[0], center[1], r, 0);
-        // var marker2 = L.marker(xy, { icon: customIcon }).addTo(map);
+        var marker2 = L.marker(xy, { icon: customIcon }).addTo(map);
       })
     }
   </script>
